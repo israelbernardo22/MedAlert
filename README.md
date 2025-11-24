@@ -111,7 +111,7 @@ medAlert24/
 - **Pedro Henrique Soares RA:323220287** - Desenvolvimento Principal
 - **Marcos Vinicius Gonçalves RA:323220450** - Desenvolvimento Principal
 - **Rafael Cangussú Moreira RA:32321034** - Desenvolvimento Principal
-- ** Pedro Rodrigues Pezzini RA:325131349** - Desenvolvimento Principal
+- **Pedro Rodrigues Pezzini RA:325131349** - Desenvolvimento Principal
 
 ---
 
