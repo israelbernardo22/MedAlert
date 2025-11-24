@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Medication as MedicationType, HistoryEntry, Profile } from '../types';
+import { HistoryEntry, Profile } from '../types';
 
 
 // Classe Medication
