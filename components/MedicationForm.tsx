@@ -1,7 +1,6 @@
 // Alteração forçada para commit: ajuste de importações e compatibilidade com POO
 import React, { useState, useEffect } from 'react';
 import { Medication, Schedule } from '../types';
-import { getMedicationInfo } from '../services/geminiService';
 import { TrashIcon, PlusIcon, PillIcon, XIcon } from './Icons';
 
 interface MedicationFormProps {
