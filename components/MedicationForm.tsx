@@ -61,7 +61,7 @@ const MedicationForm: React.FC<MedicationFormProps> = ({ onSave, onCancel, onDel
 
   return (
     <div className="h-full flex flex-col">
-    <form onSubmit={handleSubmit} className="space-y-6 flex-grow">
+    <form id="medication-form" onSubmit={handleSubmit} className="space-y-6 flex-grow">
       <div className="text-center">
         <div className="inline-block bg-blue-100 text-blue-500 p-4 rounded-full">
             <PillIcon className="w-8 h-8"/>
@@ -121,19 +121,19 @@ const MedicationForm: React.FC<MedicationFormProps> = ({ onSave, onCancel, onDel
         </div>
       </div>
 
+        <button type="submit" className="w-full inline-flex justify-center py-3 px-4 border border-transparent shadow-sm text-base font-medium rounded-lg text-white bg-green-500 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+          {initialMedication ? 'Salvar Alterações' : 'Salvar Medicamento'}
+        </button>
       </form>
       <div className="mt-8 space-y-3">
-        <button type="submit" form="medication-form" className="w-full inline-flex justify-center py-3 px-4 border border-transparent shadow-sm text-base font-medium rounded-lg text-white bg-green-500 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-            {initialMedication ? 'Salvar Alterações' : 'Salvar Medicamento'}
-          </button>
-          <button type="button" onClick={onCancel} className="w-full text-center py-3 px-4 border border-slate-300 rounded-lg shadow-sm text-base font-medium text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-            Cancelar
-          </button>
+        <button type="button" onClick={onCancel} className="w-full text-center py-3 px-4 border border-slate-300 rounded-lg shadow-sm text-base font-medium text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          Cancelar
+        </button>
         {initialMedication && onDelete && (
-            <button type="button" onClick={() => setShowDeleteConfirm(true)} className="w-full text-center py-2 px-4 text-sm font-medium text-red-600 hover:text-red-800">
-                <TrashIcon className="w-4 h-4 inline mr-1" />
-                Excluir Medicamento
-            </button>
+          <button type="button" onClick={() => setShowDeleteConfirm(true)} className="w-full text-center py-2 px-4 text-sm font-medium text-red-600 hover:text-red-800">
+            <TrashIcon className="w-4 h-4 inline mr-1" />
+            Excluir Medicamento
+          </button>
         )}
       </div>
       
