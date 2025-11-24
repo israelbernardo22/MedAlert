@@ -65,7 +65,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onBackToLog
       setError('Informe seu nome.');
       return;
     }
-    onRegister(name.trim(), relation.trim() || 'Titular');
+    onRegister(name.trim(), relation.trim() || 'Titular', email.trim(), password.trim());
   };
 
   return (
@@ -83,6 +83,14 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onBackToLog
           <div>
             <label className="block text-sm font-medium text-slate-700">Relação</label>
             <input type="text" value={relation} onChange={e => setRelation(e.target.value)} placeholder="Ex: Titular, Mãe, Pai" className="mt-1 block w-full bg-white text-slate-900 shadow-sm sm:text-sm border-slate-300 rounded-md py-3 px-4" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700">E-mail</label>
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="seu@email.com" className="mt-1 block w-full bg-white text-slate-900 shadow-sm sm:text-sm border-slate-300 rounded-md py-3 px-4" required />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700">Senha</label>
+            <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Sua senha" className="mt-1 block w-full bg-white text-slate-900 shadow-sm sm:text-sm border-slate-300 rounded-md py-3 px-4" required />
           </div>
           {error && <p className="text-xs text-red-500 text-center">{error}</p>}
           <ActionButton onClick={handleSubmit} primary>Registrar e Entrar</ActionButton>
@@ -272,7 +280,7 @@ const App: React.FC = () => {
     setCurrentProfileId(null);
     setCurrentView('profiles');
     // Limpa perfis e medicamentos, adiciona novo perfil
-    addProfile({ name, relation });
+    addProfile({ name, relation, email, password });
     // Aqui, seria ideal limpar os medicamentos, mas como addProfile só adiciona, precisamos limpar manualmente
     // Simula reset: sobrescreve os dados do store
     setTimeout(() => {
@@ -283,6 +291,23 @@ const App: React.FC = () => {
       }
     }, 100);
   };
+    const handleLogin = () => {
+      // Verifica se existe usuário salvo
+      const userStr = localStorage.getItem('medalert-user');
+      if (!userStr) {
+        alert('Nenhum usuário cadastrado. Crie uma conta primeiro.');
+        return;
+      }
+      // Simula login: pede email e senha
+      const user = JSON.parse(userStr);
+      const emailInput = prompt('Digite seu e-mail:');
+      const passwordInput = prompt('Digite sua senha:');
+      if (emailInput === user.email && passwordInput === user.password) {
+        setIsAuthenticated(true);
+      } else {
+        alert('E-mail ou senha incorretos.');
+      }
+    };
   const handleLogout = () => {
     setIsAuthenticated(false);
     setCurrentProfileId(null);
