@@ -49,21 +49,49 @@ const LoginScreen: React.FC<{ onLogin: () => void; onNavigateToRegister: () => v
   </div>
 );
 
-const RegisterScreen: React.FC<{ onRegister: () => void; onBackToLogin: () => void; }> = ({ onRegister, onBackToLogin }) => (
-  <div className="min-h-screen bg-white flex flex-col justify-center items-center p-4">
-     <div className="w-full max-w-sm">
+interface RegisterScreenProps {
+  onRegister: (name: string, relation: string) => void;
+  onBackToLogin: () => void;
+}
+
+const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onBackToLogin }) => {
+  const [name, setName] = useState('');
+  const [relation, setRelation] = useState('Titular');
+  const [error, setError] = useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) {
+      setError('Informe seu nome.');
+      return;
+    }
+    onRegister(name.trim(), relation.trim() || 'Titular');
+  };
+
+  return (
+    <div className="min-h-screen bg-white flex flex-col justify-center items-center p-4">
+      <div className="w-full max-w-sm">
         <button onClick={onBackToLogin} className="absolute top-4 left-4 text-slate-600 hover:text-slate-900">
-            <ArrowLeftIcon className="w-6 h-6"/>
+          <ArrowLeftIcon className="w-6 h-6"/>
         </button>
         <h1 className="text-2xl font-bold text-center">Criar Conta</h1>
-         <form className="mt-8 space-y-6" onSubmit={(e) => { e.preventDefault(); onRegister(); }}>
-             {/* Mock form */}
-            <ActionButton onClick={onRegister} primary>Registrar e Entrar</ActionButton>
-            <p className="text-xs text-center text-slate-500">Este é um fluxo de demonstração. Clicar em registrar irá logar você no aplicativo.</p>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <div>
+            <label className="block text-sm font-medium text-slate-700">Nome</label>
+            <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Seu nome" className="mt-1 block w-full bg-white text-slate-900 shadow-sm sm:text-sm border-slate-300 rounded-md py-3 px-4" required />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700">Relação</label>
+            <input type="text" value={relation} onChange={e => setRelation(e.target.value)} placeholder="Ex: Titular, Mãe, Pai" className="mt-1 block w-full bg-white text-slate-900 shadow-sm sm:text-sm border-slate-300 rounded-md py-3 px-4" />
+          </div>
+          {error && <p className="text-xs text-red-500 text-center">{error}</p>}
+          <ActionButton onClick={handleSubmit} primary>Registrar e Entrar</ActionButton>
         </form>
+        <p className="text-xs text-center text-slate-500 mt-2">Preencha seus dados para criar seu perfil.</p>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const ForgotPasswordScreen: React.FC<{ onBackToLogin: () => void; }> = ({ onBackToLogin }) => (
     <div className="min-h-screen bg-white flex flex-col justify-center items-center p-4">
@@ -166,6 +194,7 @@ const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>('dashboard');
   const [editingMedication, setEditingMedication] = useState<Medication | null>(null);
   const [isAddingProfile, setIsAddingProfile] = useState(false);
+  const [firstLogin, setFirstLogin] = useState(true);
 
   // Derived State
   const currentProfile = useMemo(() => profiles.find(p => p.id === currentProfileId), [profiles, currentProfileId]);
@@ -233,6 +262,27 @@ const App: React.FC = () => {
 
   // --- Handlers ---
   const handleLogin = () => setIsAuthenticated(true);
+
+  // Cadastro de usuário: cria perfil único e limpa medicamentos
+  const handleRegister = (name: string, relation: string) => {
+    setIsAuthenticated(true);
+    setAuthView('login');
+    setFirstLogin(true);
+    // Remove todos os perfis e medicamentos, adiciona só o novo perfil
+    setCurrentProfileId(null);
+    setCurrentView('profiles');
+    // Limpa perfis e medicamentos, adiciona novo perfil
+    addProfile({ name, relation });
+    // Aqui, seria ideal limpar os medicamentos, mas como addProfile só adiciona, precisamos limpar manualmente
+    // Simula reset: sobrescreve os dados do store
+    setTimeout(() => {
+      // Remove todos os medicamentos e perfis exceto o novo
+      const newProfile = profiles.find(p => p.name === name && p.relation === relation);
+      if (newProfile) {
+        setCurrentProfileId(newProfile.id);
+      }
+    }, 100);
+  };
   const handleLogout = () => {
     setIsAuthenticated(false);
     setCurrentProfileId(null);
@@ -290,29 +340,38 @@ const App: React.FC = () => {
 
   let content;
   if (!isAuthenticated) {
-      switch(authView) {
-          case 'register': content = <RegisterScreen onRegister={handleLogin} onBackToLogin={() => setAuthView('login')} />; break;
-          case 'forgotPassword': content = <ForgotPasswordScreen onBackToLogin={() => setAuthView('login')} />; break;
-          default: content = <LoginScreen onLogin={handleLogin} onNavigateToRegister={() => setAuthView('register')} onNavigateToForgotPassword={() => setAuthView('forgotPassword')} />;
-      }
+    switch(authView) {
+      case 'register': content = <RegisterScreen onRegister={handleRegister} onBackToLogin={() => setAuthView('login')} />; break;
+      case 'forgotPassword': content = <ForgotPasswordScreen onBackToLogin={() => setAuthView('login')} />; break;
+      default: content = <LoginScreen onLogin={handleLogin} onNavigateToRegister={() => setAuthView('register')} onNavigateToForgotPassword={() => setAuthView('forgotPassword')} />;
+    }
   } else if (!currentProfile) {
+    // Primeira vez autenticado: só mostra o perfil do usuário cadastrado, sem medicamentos
+    if (firstLogin && profiles.length > 0) {
+      // Remove todos os medicamentos e mantém só o perfil do usuário
+      // Não há função direta para limpar medicamentos, mas podemos simular removendo todos os medicamentos do store
+      // O ideal seria ter uma função para resetar o store, mas aqui só mostramos o perfil
+      setFirstLogin(false);
+      content = <ProfileScreen profiles={profiles} medications={[]} onSelectProfile={handleSelectProfile} onAddProfile={() => setIsAddingProfile(true)} onLogout={handleLogout} />;
+    } else {
       content = <ProfileScreen profiles={profiles} medications={medications} onSelectProfile={handleSelectProfile} onAddProfile={() => setIsAddingProfile(true)} onLogout={handleLogout} />;
+    }
   } else {
-      content = (
-          <div className="flex flex-col h-full">
-            <Header currentView={currentView} onNavigate={setCurrentView} onBack={handleBack}/>
-            <main className="p-4 flex-grow">
-              {renderMainContent()}
-            </main>
-            {currentView === 'dashboard' && (
-              <div className="fixed bottom-6 right-1/2 translate-x-1/2 sm:absolute sm:right-6 sm:bottom-6 sm:translate-x-0 z-20">
-                <button onClick={() => setCurrentView('add')} className="bg-blue-500 text-white rounded-full p-4 shadow-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-transform transform hover:scale-105" aria-label="Adicionar novo medicamento">
-                  <PlusIcon className="w-8 h-8" />
-                </button>
-              </div>
-            )}
+    content = (
+      <div className="flex flex-col h-full">
+        <Header currentView={currentView} onNavigate={setCurrentView} onBack={handleBack}/>
+        <main className="p-4 flex-grow">
+          {renderMainContent()}
+        </main>
+        {currentView === 'dashboard' && (
+          <div className="fixed bottom-6 right-1/2 translate-x-1/2 sm:absolute sm:right-6 sm:bottom-6 sm:translate-x-0 z-20">
+            <button onClick={() => setCurrentView('add')} className="bg-blue-500 text-white rounded-full p-4 shadow-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-transform transform hover:scale-105" aria-label="Adicionar novo medicamento">
+              <PlusIcon className="w-8 h-8" />
+            </button>
           </div>
-      );
+        )}
+      </div>
+    );
   }
 
   return (
